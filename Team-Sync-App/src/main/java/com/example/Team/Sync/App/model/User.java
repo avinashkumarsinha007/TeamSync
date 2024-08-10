@@ -15,13 +15,14 @@ public class User {
     private String phone;
     private String password;
     private Role role;
-    private  int depatment_id ;
+    private Long department_id ;
 
     public enum Role {
         SCRUM_MASTER,
         DEVELOPER,
         NORMAL_USER,
-        TESTER
+        TESTER,
+        MANAGER
     }
 
 }
