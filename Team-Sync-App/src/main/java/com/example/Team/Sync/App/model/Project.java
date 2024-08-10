@@ -10,10 +10,10 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Project {
-   private Long id ;
+   private Long id;
    private String project_name;
-   private  String project_description;
-   private Timestamp project_creation_date ;
-   private String project_status ;
-   private Long project_created_by ;
+   private String project_description;
+   private Timestamp project_creation_date;
+   private String project_status;
+   private Long project_created_by;
 }

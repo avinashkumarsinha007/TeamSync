@@ -11,15 +11,15 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Task {
-   private Long id  ;
-    private  Long project_id;
-    private  String task_name ;
-    private  String task_description;
+    private Long id;
+    private Long project_id;
+    private String task_name;
+    private String task_description;
     private Timestamp task_creation_date;
-    private Timestamp task_start_date ;
+    private Timestamp task_start_date;
     private Timestamp task_end_date;
     private String task_status;
-    private Long task_created_by ;
+    private Long task_created_by;
     private Date due_date;
 }
 
