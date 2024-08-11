@@ -8,9 +8,10 @@ import com.example.Team.Sync.App.dao.ProjectDAO;
 import com.example.Team.Sync.App.factory.ProjectFactory;
 import com.example.Team.Sync.App.model.Project;
 import com.example.Team.Sync.App.model.User;
+import com.example.Team.Sync.App.observer.Subject;
 
 @Service
-public class ProjectService {
+public class ProjectService extends Subject<Project> {
 
     private final ProjectDAO projectDAO;
     private final AccessControlManagementService accessControlManagementService;
@@ -25,7 +26,9 @@ public class ProjectService {
 
         if (accessControlManagementService.canCreateProject(user)) {
             Project project = ProjectFactory.createProject(type, projectName, projectDescription, projectCreatedBy);
-            return projectDAO.save(project);
+            Project savedProject = projectDAO.save(project);
+            notifyObservers(savedProject, "Project created");
+            return savedProject;
         } else {
             throw new SecurityException("Access denied: User does not have permission to create project.");
         }
@@ -45,7 +48,9 @@ public class ProjectService {
             if(project != null){
                 project.setProject_name(projectName);
                 project.setProject_description(projectDescription);
-                return projectDAO.updateProject(project);
+                Project updatedProject = projectDAO.updateProject(project);
+                notifyObservers(updatedProject, "Project updated");
+                return updatedProject;
             }
             else {
                 return null;
@@ -56,8 +61,12 @@ public class ProjectService {
     }
 
     public boolean deleteProject(User user, Long projectId) {
-        if(accessControlManagementService.canDeleteProject(user)){
-            return projectDAO.deleteProject(projectId);
+        if (accessControlManagementService.canDeleteProject(user)) {
+            boolean deleted = projectDAO.deleteProject(projectId);
+            if (deleted) {
+                notifyObservers(null, "Project deleted");
+            }
+            return deleted;
         } else {
             throw new SecurityException("Access denied: User does not have permission to delete project.");
         }
