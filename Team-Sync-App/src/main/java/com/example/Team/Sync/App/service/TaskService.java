@@ -4,6 +4,7 @@ import com.example.Team.Sync.App.dao.TaskDAO;
 import com.example.Team.Sync.App.factory.TaskFactory;
 import com.example.Team.Sync.App.model.Task;
 import com.example.Team.Sync.App.model.User;
+import com.example.Team.Sync.App.observer.Subject;
 
 import java.util.Date;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TaskService {
+public class TaskService extends Subject<Task>{
     
     private final TaskDAO taskDAO;
     private final AccessControlManagementService accessControlManagementService;
@@ -24,7 +25,9 @@ public class TaskService {
     public Task createTask(User user, String type, Long projectId, String taskName, String taskDescription, Long taskCreatedBy, Date dueDate) {
         if (accessControlManagementService.canCreateTask(user)) {
             Task task = TaskFactory.createTask(type, projectId, taskName, taskDescription, taskCreatedBy, dueDate);
-            return taskDAO.save(task);
+            Task savedTask = taskDAO.save(task);
+            notifyObservers(savedTask, "Task created");
+            return savedTask;
         } else {
             throw new SecurityException("Access denied: User does not have permission to create tasks.");
         }
@@ -45,14 +48,20 @@ public class TaskService {
             task.setTask_description(taskDescription);
             task.setTask_status(taskStatus);
             task.setDue_date(dueDate);
-            return taskDAO.updateTask(task);
+            Task updatedTask = taskDAO.updateTask(task);
+            notifyObservers(updatedTask, "task updated");
+            return updatedTask;
         }
         return null;
     }
 
     public boolean deleteTask(User user, Long taskId) {
         if (accessControlManagementService.canDeleteTask(user)) {
-            return taskDAO.deleteTask(taskId);
+            boolean deletedTask = taskDAO.deleteTask(taskId);
+            if (deletedTask) {
+                notifyObservers(null, "Project deleted");
+            }
+            return deletedTask;
         } else {
             throw new SecurityException("Access denied: User does not have permission to delete tasks.");
         }
