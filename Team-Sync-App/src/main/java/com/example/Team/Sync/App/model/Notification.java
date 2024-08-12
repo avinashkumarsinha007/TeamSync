@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Notification {
-   private Long id ;
+    private Long id ;
     private String message ;
     private Long user_id;
     private Timestamp send_at ;
