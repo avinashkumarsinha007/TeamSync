@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Comment {
     private Long id;
-    private Long userId;
-    private Long taskId;
+    private Long user_id;
+    private Long task_id;
     private String comment;
     private Timestamp commented_at;
 }
