@@ -8,9 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Observer {
-
     private Long id;
-    private Long user_id;
+    private Long task_id;
     private String notification_type;
     private String subscription_status ;
 }
