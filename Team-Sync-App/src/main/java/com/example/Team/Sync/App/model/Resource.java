@@ -1,5 +1,7 @@
 package com.example.Team.Sync.App.model;
 
+import java.sql.Timestamp;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,5 +16,7 @@ public class Resource {
     private  String skills ;
     private  String shift_working_in;
     private  Long task_id;
-    private Long subtask_id ;
+    private Long subtask_id;
+    private Timestamp task_assigned_date;
+    private Timestamp task_end_date;
 }
