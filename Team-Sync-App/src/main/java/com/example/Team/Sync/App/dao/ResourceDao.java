@@ -48,4 +48,12 @@ public class ResourceDao {
                 .collect(Collectors.toList());
     }
 
+    public Resource findResourcesByUserId(Long userId){
+        for (Resource resource : resourceDataBase.values()) {
+            if(resource.getUser_id().equals(userId)){
+                return resource;
+            }
+        }
+        throw new IllegalArgumentException("Resource is not available.");
+    }
 }
