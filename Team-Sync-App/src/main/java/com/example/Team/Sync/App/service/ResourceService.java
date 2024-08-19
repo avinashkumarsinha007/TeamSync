@@ -14,13 +14,14 @@ import org.springframework.stereotype.Service;
 public class ResourceService {
 
     private final ResourceDao resourceDao;
-
+    private final RealTimeCollaborationService realTimeCollaborationService;
     private final AccessControlManagementService accessControlManagementService;
 
     public ResourceService(ResourceDao resourceDao,
-    AccessControlManagementService accessControlManagementService) {
+    AccessControlManagementService accessControlManagementService, RealTimeCollaborationService realTimeCollaborationService) {
     this.resourceDao = resourceDao;
     this.accessControlManagementService = accessControlManagementService;
+    this.realTimeCollaborationService = realTimeCollaborationService;
     }
 
     public Resource createResource(User user, Long userId, Boolean availableStatus, String skills,
@@ -60,49 +61,49 @@ public class ResourceService {
         return resourceDao.getAllResources();
     }
 
-// Update a specific field for an existing resource
-public Resource updateResourceField(User user, Long resourceId, Map<String, Object> updates) {
-    if (accessControlManagementService.canUpdateResource(user)) {
-        // Retrieve the existing resource
-        Resource resource = resourceDao.findById(resourceId);
+    // Update a specific field for an existing resource
+    public Resource updateResourceField(User user, Long resourceId, Map<String, Object> updates) {
+        if (accessControlManagementService.canUpdateResource(user)) {
+            // Retrieve the existing resource
+            Resource resource = resourceDao.findById(resourceId);
 
-        if (resource == null) {
-            throw new IllegalArgumentException("Resource not found");
-        }
+            if (resource == null) {
+                throw new IllegalArgumentException("Resource not found");
+            }
 
-        // Update only the fields provided in the updates map
-        if (updates.containsKey("userId")) {
-            resource.setUser_id((Long) updates.get("userId"));
-        }
-        if (updates.containsKey("availableStatus")) {
-            resource.setAvailable_status((Boolean) updates.get("availableStatus"));
-        }
-        if (updates.containsKey("skills")) {
-            resource.setSkills((String) updates.get("skills"));
-        }
-        if (updates.containsKey("shiftWorkingIn")) {
-            resource.setShift_working_in((String) updates.get("shiftWorkingIn"));
-        }
-        if (updates.containsKey("taskId")) {
-            resource.setTask_id((Long) updates.get("taskId"));
-        }
-        if (updates.containsKey("subtaskId")) {
-            resource.setSubtask_id((Long) updates.get("subtaskId"));
-        }
+            // Update only the fields provided in the updates map
+            if (updates.containsKey("userId")) {
+                resource.setUser_id((Long) updates.get("userId"));
+            }
+            if (updates.containsKey("availableStatus")) {
+                resource.setAvailable_status((Boolean) updates.get("availableStatus"));
+            }
+            if (updates.containsKey("skills")) {
+                resource.setSkills((String) updates.get("skills"));
+            }
+            if (updates.containsKey("shiftWorkingIn")) {
+                resource.setShift_working_in((String) updates.get("shiftWorkingIn"));
+            }
+            if (updates.containsKey("taskId")) {
+                resource.setTask_id((Long) updates.get("taskId"));
+            }
+            if (updates.containsKey("subtaskId")) {
+                resource.setSubtask_id((Long) updates.get("subtaskId"));
+            }
 
-        if (updates.containsKey("assignedDateStart")) {
-            resource.setTask_assigned_date((Timestamp) updates.get("assignedDateStart"));
-        }
-        if (updates.containsKey("assignedDateEnd")) {
-            resource.setTask_end_date((Timestamp) updates.get("assignedDateEnd"));
-        }
+            if (updates.containsKey("assignedDateStart")) {
+                resource.setTask_assigned_date((Timestamp) updates.get("assignedDateStart"));
+            }
+            if (updates.containsKey("assignedDateEnd")) {
+                resource.setTask_end_date((Timestamp) updates.get("assignedDateEnd"));
+            }
 
-        // Save the updated resource
-        return resourceDao.update(resource);
-    } else {
-        throw new SecurityException("Access denied: User does not have permission to update resource.");
+            // Save the updated resource
+            return resourceDao.update(resource);
+        } else {
+            throw new SecurityException("Access denied: User does not have permission to update resource.");
+        }
     }
-}
 
     // Add a resource to a specific task
     public Resource addResource(User user, Long resourceId, Long taskId, Timestamp assignedTaskStartTime, Timestamp endAssignedTaskTime) {
@@ -126,7 +127,8 @@ public Resource updateResourceField(User user, Long resourceId, Map<String, Obje
 
             // Associate the resource with the given task
             resource.setTask_id(taskId);
-
+            // register observer for the task
+            realTimeCollaborationService.registerObserversForTask(user);
             // Save the updated resource
             return resourceDao.update(resource);
         } else {
@@ -161,7 +163,8 @@ public Resource updateResourceField(User user, Long resourceId, Map<String, Obje
             if (taskId.equals(resource.getTask_id())) {
                 // Disassociate the resource from the task
                 resource.setTask_id(null);
-
+                // unregister the observer
+                realTimeCollaborationService.unregisterObserversFromTask(user);
                 // Save the updated resource
                 return resourceDao.update(resource);
             } else {

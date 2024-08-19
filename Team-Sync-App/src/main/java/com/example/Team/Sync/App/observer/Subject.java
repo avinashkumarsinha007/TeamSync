@@ -14,9 +14,9 @@ public abstract class Subject<T> {
         observers.remove(observer);
     }
 
-    public void notifyObservers(T entity,String message) {
+    public void notifyObservers(T entity, String message) {
         for (Observer<T> observer : observers) {
-            observer.update(entity,message);
+            observer.update(entity, message);
         }
     }
 }

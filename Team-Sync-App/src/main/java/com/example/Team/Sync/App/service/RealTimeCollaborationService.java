@@ -1,7 +1,6 @@
 package com.example.Team.Sync.App.service;
 
 import com.example.Team.Sync.App.model.Project;
-import com.example.Team.Sync.App.model.Resource;
 import com.example.Team.Sync.App.model.Task;
 import com.example.Team.Sync.App.model.User;
 import com.example.Team.Sync.App.observer.Observer;
@@ -9,65 +8,54 @@ import com.example.Team.Sync.App.observer.Observer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class RealTimeCollaborationService {
 
     private final TaskService taskService;
     private final ProjectService projectService;
     private final NotificationService notificationService;
-    private final ResourceService resourceService;
-    private final UserService userService;
 
     @Autowired
     public RealTimeCollaborationService(
         TaskService taskService, 
         ProjectService projectService, 
-        NotificationService notificationService, 
-        ResourceService resourceService,
-        UserService userService
+        NotificationService notificationService
     ) {
         this.taskService = taskService;
         this.projectService = projectService;
         this.notificationService = notificationService;
-        this.resourceService = resourceService;
-        this.userService = userService;
     }
 
     // Register observers for a task based on users assigned to that task
-    public void registerObserversForTask(Long taskId) {
-        List<Resource> resources = resourceService.getResourcesByTaskId(taskId);
-        for (Resource resource : resources) {
-            User user = userService.getUserById(resource.getUser_id());
-            if (user != null) {
-                Observer<Task> observer = createObserverForUser(user);
-                taskService.addObserver(observer);
-            }
+    public void registerObserversForTask(User user) {
+        if (user != null) {
+            Observer<Task> observer = createObserverForUserForTaskRelatedUpdate(user);
+            taskService.addObserver(observer);
         }
     }
 
     // Register observers for a project (if needed)
-    public void registerObserversForProject(Long projectId) {
-      
-
-    }
-
-    // Unregister observers from a task
-    public void unregisterObserversFromTask(Long taskId) {
-        List<Resource> resources =resourceService.getResourcesByTaskId(taskId);
-        for (Resource resource : resources) {
-            User user = userService.getUserById(resource.getUser_id());
-            if (user != null) {
-                Observer<Task>  observer = createObserverForUser(user);
-                taskService.removeObserver(observer);
-            }
+    public void registerObserversForProject(User user) {
+        if (user != null) {
+            Observer<Project> observer = createObserverForUserForProjectRelatedUpdate(user);
+            projectService.addObserver(observer);
         }
     }
 
+    // Unregister observers from a task
+    public void unregisterObserversFromTask(User user) {
+            if (user != null) {
+                Observer<Task>  observer = createObserverForUserForTaskRelatedUpdate(user);
+                taskService.removeObserver(observer);
+            }
+    }
+
     // Unregister observers from a project (if needed)
-    public void unregisterObserversFromProject(Long projectId) {
-       
+    public void unregisterObserversFromProject(User user) {
+        if (user != null) {
+            Observer<Project> observer = createObserverForUserForProjectRelatedUpdate(user);
+            projectService.removeObserver(observer);
+        }
     }
 
     // Method to handle adding a user as an observer to a task or project
@@ -100,9 +88,15 @@ public class RealTimeCollaborationService {
         }
     }
 
-    private Observer<Task> createObserverForUser(User user) {
+    private Observer<Task> createObserverForUserForTaskRelatedUpdate(User user) {
         return (task, message) -> {
             notificationService.createNotification(task, user, message);
+        };
+    }
+
+    private Observer<Project> createObserverForUserForProjectRelatedUpdate(User user) {
+        return (project, message) -> {
+            notificationService.createNotification(project, user, message);
         };
     }
 }

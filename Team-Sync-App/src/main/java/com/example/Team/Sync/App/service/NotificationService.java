@@ -2,6 +2,7 @@ package com.example.Team.Sync.App.service;
 
 import com.example.Team.Sync.App.dao.NotificationDAO;
 import com.example.Team.Sync.App.model.Notification;
+import com.example.Team.Sync.App.model.Project;
 import com.example.Team.Sync.App.model.Task;
 import com.example.Team.Sync.App.model.User;
 
@@ -28,7 +29,15 @@ public class NotificationService{
         notification.setMessage(message);
         notification.setSend_at(currentTime);
         notification.setUser_id(user.getId());
-        // Save the notification to the database
+        return notificationDAO.save(notification);
+    }
+
+    public Notification createNotification(Project project, User user, String message) {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        Notification notification = new Notification();
+        notification.setMessage(message);
+        notification.setSend_at(currentTime);
+        notification.setUser_id(user.getId());
         return notificationDAO.save(notification);
     }
 

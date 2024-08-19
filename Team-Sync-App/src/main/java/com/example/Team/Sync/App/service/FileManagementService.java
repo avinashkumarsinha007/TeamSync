@@ -4,14 +4,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.example.Team.Sync.App.dao.FileDAO;
-import com.example.Team.Sync.App.model.File;
+import org.springframework.stereotype.Service;
 
+import com.example.Team.Sync.App.dao.FileDAO;
+import com.example.Team.Sync.App.dao.ShareFileDAO;
+import com.example.Team.Sync.App.model.File;
+import com.example.Team.Sync.App.model.ShareFile;
+
+@Service
 public class FileManagementService {
    private final FileDAO fileDao;
+   private final ShareFileDAO shareFileDAO;
 
-    public FileManagementService(FileDAO fileDao) {
+    public FileManagementService(FileDAO fileDao, ShareFileDAO shareFileDAO) {
         this.fileDao = fileDao;
+        this.shareFileDAO = shareFileDAO;
     }
 
     // Add a list of files
@@ -22,17 +29,16 @@ public class FileManagementService {
     }
 
     // Share a file with another user by creating a copy of the file with the new user_id
-    public File shareFile(Long fileId, Long newUserId) {
+    public ShareFile shareFile(Long fileId, Long newUserId, String permission) {
         File existingFile = fileDao.findById(fileId);
         if (existingFile != null) {
-            File sharedFile = new File(
-                    null, 
-                    existingFile.getTask_id(),
+            ShareFile sharedFile = new ShareFile(
+                    null,  
+                    fileId,
                     newUserId,
-                    existingFile.getFile_name(),
-                    existingFile.getFile_path(),
-                    existingFile.getUploading_time());
-            return fileDao.save(sharedFile);
+                    permission
+            );
+            return shareFileDAO.save(sharedFile); 
         }
         return null;
     }

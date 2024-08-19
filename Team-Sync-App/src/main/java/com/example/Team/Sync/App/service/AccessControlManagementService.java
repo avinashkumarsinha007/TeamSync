@@ -5,6 +5,9 @@ import com.example.Team.Sync.App.model.User.Role;
 
 import java.util.EnumSet;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class AccessControlManagementService {
 
     private static final EnumSet<Role> TASK_CREATION_ROLES = EnumSet.of(Role.SCRUM_MASTER, Role.DEVELOPER);

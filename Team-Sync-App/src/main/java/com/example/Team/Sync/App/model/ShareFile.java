@@ -7,9 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Observer<T> {
+public class ShareFile {
+    
     private Long id;
-    private Long task_id;
-    private String notification_type;
-    private String subscription_status;
+    private Long fileId;
+    private Long sharedWithUserId;
+    private String permission; // e.g., "read-only", "edit"
+    
 }

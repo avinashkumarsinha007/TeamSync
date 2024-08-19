@@ -1,10 +1,13 @@
 package com.example.Team.Sync.App;
 
 import com.example.Team.Sync.App.dao.TaskDAO;
+import com.example.Team.Sync.App.dao.UserDAO;
 import com.example.Team.Sync.App.model.Task;
 import com.example.Team.Sync.App.model.User;
+import com.example.Team.Sync.App.model.User.Role;
 import com.example.Team.Sync.App.service.AccessControlManagementService;
 import com.example.Team.Sync.App.service.TaskService;
+import com.example.Team.Sync.App.service.UserService;
 
 import java.util.Date;
 
@@ -17,20 +20,24 @@ public class TeamSyncAppApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(TeamSyncAppApplication.class, args);
 
-		
 		TaskDAO taskDAO = new TaskDAO();
-		User user = new User();
+		UserDAO userDAO = new UserDAO();
+		UserService userService = new UserService(userDAO);
+		User user = userService.createUser("Avinash", "avinash@gmail.com", "999", "aaaaaa", Role.SCRUM_MASTER , 9999999L);
 		AccessControlManagementService accessControlManagementService = new AccessControlManagementService();
 		TaskService taskService = new TaskService(taskDAO, accessControlManagementService);
 
 		// Create tasks
 		Task featureTask = taskService.createTask(user ,"feature", 1L, "Implement feature X", "Details about feature X", 101L, new Date());
 		Task bugTask = taskService.createTask(user, "bug", 1L, "Fix bug Y", "Details about bug Y", 102L, new Date());
+		System.out.println("Bug Task created: " + bugTask );
+		System.out.println("featureTask created: " + featureTask );
 
 		// Retrieve and update tasks
 		Task task = taskService.getTaskById(featureTask.getId());
 		System.out.println("Task: " + task.getTask_name());
-		taskService.updateTask(task.getId(), "Implement feature X - updated", "Updated details", "IN_PROGRESS", new Date());
+		Task updatedTask = taskService.updateTask(task.getId(), "Implement feature X - updated", "Updated details", "IN_PROGRESS", new Date());
+		System.out.println("updatedTask created: " + updatedTask );
 
 		// Delete task
 		boolean deleted = taskService.deleteTask(user,bugTask.getId());
