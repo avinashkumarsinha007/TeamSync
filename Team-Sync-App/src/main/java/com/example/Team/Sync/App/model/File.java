@@ -13,5 +13,5 @@ public class File {
    private Long  user_id ;
    private String  file_name ;
    private String file_path ;
-   private Template uploading_time ;
+   private Template uploading_time;
 }

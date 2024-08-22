@@ -3,8 +3,11 @@ package com.example.Team.Sync.App.dao;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.stereotype.Repository;
+
 import com.example.Team.Sync.App.model.Milestone;
 
+@Repository
 public class MilestoneDAO {
     private final Map<Long, Milestone> mileStoneData = new HashMap<>();
 

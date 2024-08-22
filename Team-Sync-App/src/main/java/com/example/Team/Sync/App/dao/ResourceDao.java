@@ -5,8 +5,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Repository;
+
 import com.example.Team.Sync.App.model.Resource;
 
+@Repository
 public class ResourceDao {
         private final Map<Long, Resource> resourceDataBase = new HashMap<>();
     private Long idCounter = 1L;
