@@ -53,4 +53,8 @@ public class AccessControlManagementService {
     public boolean canUpdateResource(User user) {
         return MILESTONE_DELETE_ROLES.contains(user.getRole());
     }
+
+    public boolean canAddResourceResourceToTask(User user) {
+        return TASK_CREATION_ROLES.contains(user.getRole());
+    }
 }

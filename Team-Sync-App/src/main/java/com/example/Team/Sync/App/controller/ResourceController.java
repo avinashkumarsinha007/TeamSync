@@ -39,11 +39,7 @@ public class ResourceController {
                 resourceRequest.getUserId(),
                 resourceRequest.getAvailableStatus(),
                 resourceRequest.getSkills(),
-                resourceRequest.getShiftWorkingIn(),
-                resourceRequest.getTaskId(),
-                resourceRequest.getSubtaskId(),
-                resourceRequest.getAssignedDateStart(),
-                resourceRequest.getAssignedDateEnd()
+                resourceRequest.getShiftWorkingIn()
         );
         return ResponseEntity.ok(createdResource);
     }

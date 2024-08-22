@@ -26,7 +26,7 @@ public class TaskService extends Subject<Task>{
         if (accessControlManagementService.canCreateTask(user)) {
             Task task = TaskFactory.createTask(type, projectId, taskName, taskDescription, taskCreatedBy, dueDate);
             Task savedTask = taskDAO.save(task);
-            notifyObservers(savedTask, "Task created");
+            notifyObservers(savedTask);
             return savedTask;
         } else {
             throw new SecurityException("Access denied: User does not have permission to create tasks.");
@@ -49,7 +49,10 @@ public class TaskService extends Subject<Task>{
             task.setTask_status(taskStatus);
             task.setDue_date(dueDate);
             Task updatedTask = taskDAO.updateTask(task);
-            notifyObservers(updatedTask, "task updated");
+            System.out.println("Notifying observers of task update...");
+            System.out.println("Updating task: " + updatedTask + "\n");
+            System.out.println("Observers before notifying: " + getObservers() + "\n");
+            notifyObservers(updatedTask);
             return updatedTask;
         }
         return null;
@@ -59,7 +62,7 @@ public class TaskService extends Subject<Task>{
         if (accessControlManagementService.canDeleteTask(user)) {
             boolean deletedTask = taskDAO.deleteTask(taskId);
             if (deletedTask) {
-                notifyObservers(null, "Project deleted");
+                notifyObservers(null);
             }
             return deletedTask;
         } else {

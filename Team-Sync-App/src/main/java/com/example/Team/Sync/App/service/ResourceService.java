@@ -25,7 +25,7 @@ public class ResourceService {
     }
 
     public Resource createResource(User user, Long userId, Boolean availableStatus, String skills,
-        String shiftWorkingIn, Long taskId, Long subtaskId, Timestamp assignedDateStart, Timestamp assignedDateEnd) {
+        String shiftWorkingIn) {
 
         if (accessControlManagementService.canCreateResource(user)) {
             Resource resource = new Resource();
@@ -33,10 +33,6 @@ public class ResourceService {
             resource.setAvailable_status(availableStatus);
             resource.setSkills(skills);
             resource.setShift_working_in(shiftWorkingIn);
-            resource.setTask_id(taskId);
-            resource.setSubtask_id(subtaskId);
-            resource.setTask_assigned_date(assignedDateStart);
-            resource.setTask_end_date(assignedDateEnd);
             return resourceDao.save(resource);
         } else {
             throw new SecurityException("Access denied: User does not have permission to create resource.");
@@ -107,7 +103,7 @@ public class ResourceService {
 
     // Add a resource to a specific task
     public Resource addResource(User user, Long resourceId, Long taskId, Timestamp assignedTaskStartTime, Timestamp endAssignedTaskTime) {
-        if (accessControlManagementService.canUpdateResource(user)) {
+        if (accessControlManagementService.canAddResourceResourceToTask(user)) {
             // Retrieve the existing resource
             Resource resource = resourceDao.findById(resourceId);
 
@@ -127,8 +123,10 @@ public class ResourceService {
 
             // Associate the resource with the given task
             resource.setTask_id(taskId);
+            resource.setTask_assigned_date(assignedTaskStartTime);
+            resource.setTask_end_date(endAssignedTaskTime);
             // register observer for the task
-            realTimeCollaborationService.registerObserversForTask(user);
+            realTimeCollaborationService.registerObserverForTask(taskId, resource.getUser_id());
             // Save the updated resource
             return resourceDao.update(resource);
         } else {
@@ -139,7 +137,9 @@ public class ResourceService {
     // Helper method to check if the resource has sufficient bandwidth
     private boolean hasSufficientBandwidth(Resource resource , Timestamp assignedTaskStartTime,  Timestamp endAssignedTaskTime) {
         // Example logic: Check how many tasks the resource is currently assigned to
-
+        if(resource.getTask_assigned_date()== null){
+            return true;
+        }
         if (resource.getTask_assigned_date().before(assignedTaskStartTime) && 
             resource.getTask_end_date().before(assignedTaskStartTime)|| resource.getTask_assigned_date().after(endAssignedTaskTime) && 
             resource.getTask_assigned_date().after(assignedTaskStartTime) ) {
@@ -164,7 +164,7 @@ public class ResourceService {
                 // Disassociate the resource from the task
                 resource.setTask_id(null);
                 // unregister the observer
-                realTimeCollaborationService.unregisterObserversFromTask(user);
+                realTimeCollaborationService.unregisterObserverForTask(taskId, user.getId());
                 // Save the updated resource
                 return resourceDao.update(resource);
             } else {

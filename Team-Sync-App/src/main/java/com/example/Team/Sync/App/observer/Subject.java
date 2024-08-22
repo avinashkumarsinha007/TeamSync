@@ -14,9 +14,15 @@ public abstract class Subject<T> {
         observers.remove(observer);
     }
 
-    public void notifyObservers(T entity, String message) {
+    protected void notifyObservers(T data) {
+        System.out.println("Notifying observers for task:" );
         for (Observer<T> observer : observers) {
-            observer.update(entity, message);
+            System.out.println("subject" + observer.toString() + "\n");
+            observer.update(data);  
         }
+    }
+    
+    public List<Observer<T>> getObservers() {
+        return observers;
     }
 }
