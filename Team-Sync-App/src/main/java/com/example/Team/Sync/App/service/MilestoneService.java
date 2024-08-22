@@ -3,10 +3,13 @@ package com.example.Team.Sync.App.service;
 import java.sql.Timestamp;
 import java.util.Map;
 
+import org.springframework.stereotype.Service;
+
 import com.example.Team.Sync.App.dao.MilestoneDAO;
 import com.example.Team.Sync.App.model.Milestone;
 import com.example.Team.Sync.App.model.User;
 
+@Service
 public class MilestoneService {
 
     private final AccessControlManagementService accessControlManagementService;

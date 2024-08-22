@@ -3,8 +3,11 @@ package com.example.Team.Sync.App.dao;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.stereotype.Repository;
+
 import com.example.Team.Sync.App.model.File;
 
+@Repository
 public class FileDAO {
 private final Map<Long, File> fileDatabase = new HashMap<>();
     private Long idCounter = 1L;

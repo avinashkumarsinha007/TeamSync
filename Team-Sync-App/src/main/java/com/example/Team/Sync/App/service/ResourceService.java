@@ -14,17 +14,18 @@ import org.springframework.stereotype.Service;
 public class ResourceService {
 
     private final ResourceDao resourceDao;
-
+    private final RealTimeCollaborationService realTimeCollaborationService;
     private final AccessControlManagementService accessControlManagementService;
 
     public ResourceService(ResourceDao resourceDao,
-    AccessControlManagementService accessControlManagementService) {
+    AccessControlManagementService accessControlManagementService, RealTimeCollaborationService realTimeCollaborationService) {
     this.resourceDao = resourceDao;
     this.accessControlManagementService = accessControlManagementService;
+    this.realTimeCollaborationService = realTimeCollaborationService;
     }
 
     public Resource createResource(User user, Long userId, Boolean availableStatus, String skills,
-        String shiftWorkingIn, Long taskId, Long subtaskId, Timestamp assignedDateStart, Timestamp assignedDateEnd) {
+        String shiftWorkingIn) {
 
         if (accessControlManagementService.canCreateResource(user)) {
             Resource resource = new Resource();
@@ -32,10 +33,6 @@ public class ResourceService {
             resource.setAvailable_status(availableStatus);
             resource.setSkills(skills);
             resource.setShift_working_in(shiftWorkingIn);
-            resource.setTask_id(taskId);
-            resource.setSubtask_id(subtaskId);
-            resource.setTask_assigned_date(assignedDateStart);
-            resource.setTask_end_date(assignedDateEnd);
             return resourceDao.save(resource);
         } else {
             throw new SecurityException("Access denied: User does not have permission to create resource.");
@@ -60,53 +57,53 @@ public class ResourceService {
         return resourceDao.getAllResources();
     }
 
-// Update a specific field for an existing resource
-public Resource updateResourceField(User user, Long resourceId, Map<String, Object> updates) {
-    if (accessControlManagementService.canUpdateResource(user)) {
-        // Retrieve the existing resource
-        Resource resource = resourceDao.findById(resourceId);
+    // Update a specific field for an existing resource
+    public Resource updateResourceField(User user, Long resourceId, Map<String, Object> updates) {
+        if (accessControlManagementService.canUpdateResource(user)) {
+            // Retrieve the existing resource
+            Resource resource = resourceDao.findById(resourceId);
 
-        if (resource == null) {
-            throw new IllegalArgumentException("Resource not found");
-        }
+            if (resource == null) {
+                throw new IllegalArgumentException("Resource not found");
+            }
 
-        // Update only the fields provided in the updates map
-        if (updates.containsKey("userId")) {
-            resource.setUser_id((Long) updates.get("userId"));
-        }
-        if (updates.containsKey("availableStatus")) {
-            resource.setAvailable_status((Boolean) updates.get("availableStatus"));
-        }
-        if (updates.containsKey("skills")) {
-            resource.setSkills((String) updates.get("skills"));
-        }
-        if (updates.containsKey("shiftWorkingIn")) {
-            resource.setShift_working_in((String) updates.get("shiftWorkingIn"));
-        }
-        if (updates.containsKey("taskId")) {
-            resource.setTask_id((Long) updates.get("taskId"));
-        }
-        if (updates.containsKey("subtaskId")) {
-            resource.setSubtask_id((Long) updates.get("subtaskId"));
-        }
+            // Update only the fields provided in the updates map
+            if (updates.containsKey("userId")) {
+                resource.setUser_id((Long) updates.get("userId"));
+            }
+            if (updates.containsKey("availableStatus")) {
+                resource.setAvailable_status((Boolean) updates.get("availableStatus"));
+            }
+            if (updates.containsKey("skills")) {
+                resource.setSkills((String) updates.get("skills"));
+            }
+            if (updates.containsKey("shiftWorkingIn")) {
+                resource.setShift_working_in((String) updates.get("shiftWorkingIn"));
+            }
+            if (updates.containsKey("taskId")) {
+                resource.setTask_id((Long) updates.get("taskId"));
+            }
+            if (updates.containsKey("subtaskId")) {
+                resource.setSubtask_id((Long) updates.get("subtaskId"));
+            }
 
-        if (updates.containsKey("assignedDateStart")) {
-            resource.setTask_assigned_date((Timestamp) updates.get("assignedDateStart"));
-        }
-        if (updates.containsKey("assignedDateEnd")) {
-            resource.setTask_end_date((Timestamp) updates.get("assignedDateEnd"));
-        }
+            if (updates.containsKey("assignedDateStart")) {
+                resource.setTask_assigned_date((Timestamp) updates.get("assignedDateStart"));
+            }
+            if (updates.containsKey("assignedDateEnd")) {
+                resource.setTask_end_date((Timestamp) updates.get("assignedDateEnd"));
+            }
 
-        // Save the updated resource
-        return resourceDao.update(resource);
-    } else {
-        throw new SecurityException("Access denied: User does not have permission to update resource.");
+            // Save the updated resource
+            return resourceDao.update(resource);
+        } else {
+            throw new SecurityException("Access denied: User does not have permission to update resource.");
+        }
     }
-}
 
     // Add a resource to a specific task
     public Resource addResource(User user, Long resourceId, Long taskId, Timestamp assignedTaskStartTime, Timestamp endAssignedTaskTime) {
-        if (accessControlManagementService.canUpdateResource(user)) {
+        if (accessControlManagementService.canAddResourceResourceToTask(user)) {
             // Retrieve the existing resource
             Resource resource = resourceDao.findById(resourceId);
 
@@ -126,7 +123,10 @@ public Resource updateResourceField(User user, Long resourceId, Map<String, Obje
 
             // Associate the resource with the given task
             resource.setTask_id(taskId);
-
+            resource.setTask_assigned_date(assignedTaskStartTime);
+            resource.setTask_end_date(endAssignedTaskTime);
+            // register observer for the task
+            realTimeCollaborationService.registerObserverForTask(taskId, resource.getUser_id());
             // Save the updated resource
             return resourceDao.update(resource);
         } else {
@@ -137,7 +137,9 @@ public Resource updateResourceField(User user, Long resourceId, Map<String, Obje
     // Helper method to check if the resource has sufficient bandwidth
     private boolean hasSufficientBandwidth(Resource resource , Timestamp assignedTaskStartTime,  Timestamp endAssignedTaskTime) {
         // Example logic: Check how many tasks the resource is currently assigned to
-
+        if(resource.getTask_assigned_date()== null){
+            return true;
+        }
         if (resource.getTask_assigned_date().before(assignedTaskStartTime) && 
             resource.getTask_end_date().before(assignedTaskStartTime)|| resource.getTask_assigned_date().after(endAssignedTaskTime) && 
             resource.getTask_assigned_date().after(assignedTaskStartTime) ) {
@@ -161,7 +163,8 @@ public Resource updateResourceField(User user, Long resourceId, Map<String, Obje
             if (taskId.equals(resource.getTask_id())) {
                 // Disassociate the resource from the task
                 resource.setTask_id(null);
-
+                // unregister the observer
+                realTimeCollaborationService.unregisterObserverForTask(taskId, user.getId());
                 // Save the updated resource
                 return resourceDao.update(resource);
             } else {

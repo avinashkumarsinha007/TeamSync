@@ -27,7 +27,7 @@ public class ProjectService extends Subject<Project> {
         if (accessControlManagementService.canCreateProject(user)) {
             Project project = ProjectFactory.createProject(type, projectName, projectDescription, projectCreatedBy);
             Project savedProject = projectDAO.save(project);
-            notifyObservers(savedProject, "Project created");
+            notifyObservers(savedProject);
             return savedProject;
         } else {
             throw new SecurityException("Access denied: User does not have permission to create project.");
@@ -49,7 +49,7 @@ public class ProjectService extends Subject<Project> {
                 project.setProject_name(projectName);
                 project.setProject_description(projectDescription);
                 Project updatedProject = projectDAO.updateProject(project);
-                notifyObservers(updatedProject, "Project updated");
+                notifyObservers(updatedProject);
                 return updatedProject;
             }
             else {
@@ -64,7 +64,7 @@ public class ProjectService extends Subject<Project> {
         if (accessControlManagementService.canDeleteProject(user)) {
             boolean deleted = projectDAO.deleteProject(projectId);
             if (deleted) {
-                notifyObservers(null, "Project deleted");
+                notifyObservers(null);
             }
             return deleted;
         } else {
