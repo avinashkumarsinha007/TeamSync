@@ -4,23 +4,14 @@ import com.example.Team.Sync.App.model.Task;
 
 public class TaskSubject extends Subject<Task> {
     private Task task;
-     
-    public TaskSubject(Task task) {
-        this.task = task;
+
+    public TaskSubject() {
+        this.task = null; 
     }
 
     public void updateTask(Task updatedTask) {
         this.task = updatedTask;
         notifyObservers(updatedTask);
-    }
-
-    @Override
-    protected void notifyObservers(Task updatedTask) {
-        System.out.println("Notifying observers for task: " + updatedTask.getTask_name());
-        for (Observer<Task> observer : getObservers()) {
-            System.out.println("Notifying observer for user: " + observer.toString());
-            observer.update(updatedTask);
-        }
     }
 
     public Task getTask() {

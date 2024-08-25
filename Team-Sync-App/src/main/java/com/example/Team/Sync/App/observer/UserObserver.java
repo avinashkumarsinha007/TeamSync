@@ -15,7 +15,7 @@ public class UserObserver implements Observer<Task> {
 
     @Override
     public void update(Task task) {
-        String message = "Task " + task.getTask_name() + " has been updated.";
+        String message = "Task " + task.getTask_name() + "";
         System.out.println("Updating observer for user " + userId + ": " + message + "\n");
         notificationService.createNotification(userId, message);
     }
