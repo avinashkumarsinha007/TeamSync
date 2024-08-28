@@ -4,7 +4,6 @@ import com.example.Team.Sync.App.dao.TaskDAO;
 import com.example.Team.Sync.App.factory.TaskFactory;
 import com.example.Team.Sync.App.model.Task;
 import com.example.Team.Sync.App.model.User;
-import com.example.Team.Sync.App.observer.Subject;
 
 import java.util.Date;
 import java.util.Map;
@@ -12,21 +11,24 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TaskService extends Subject<Task>{
+public class TaskService {
     
     private final TaskDAO taskDAO;
     private final AccessControlManagementService accessControlManagementService;
+    private final RealTimeCollaborationService realTimeCollaborationService;
 
-    public TaskService(TaskDAO taskDAO, AccessControlManagementService accessControlManagementService) {
+    public TaskService(TaskDAO taskDAO, AccessControlManagementService accessControlManagementService, RealTimeCollaborationService realTimeCollaborationService) {
         this.taskDAO = taskDAO;
         this.accessControlManagementService = accessControlManagementService;
+        this.realTimeCollaborationService = realTimeCollaborationService;
     }
 
     public Task createTask(User user, String type, Long projectId, String taskName, String taskDescription, Long taskCreatedBy, Date dueDate) {
         if (accessControlManagementService.canCreateTask(user)) {
             Task task = TaskFactory.createTask(type, projectId, taskName, taskDescription, taskCreatedBy, dueDate);
             Task savedTask = taskDAO.save(task);
-            notifyObservers(savedTask);
+            realTimeCollaborationService.registerObserverForTask(savedTask.getId(), user.getId());
+            realTimeCollaborationService.notifyTaskUpdate(savedTask); 
             return savedTask;
         } else {
             throw new SecurityException("Access denied: User does not have permission to create tasks.");
@@ -49,10 +51,7 @@ public class TaskService extends Subject<Task>{
             task.setTask_status(taskStatus);
             task.setDue_date(dueDate);
             Task updatedTask = taskDAO.updateTask(task);
-            System.out.println("Notifying observers of task update...");
-            System.out.println("Updating task: " + updatedTask + "\n");
-            System.out.println("Observers before notifying: " + getObservers() + "\n");
-            notifyObservers(updatedTask);
+            realTimeCollaborationService.notifyTaskUpdate(updatedTask); 
             return updatedTask;
         }
         return null;
@@ -62,7 +61,7 @@ public class TaskService extends Subject<Task>{
         if (accessControlManagementService.canDeleteTask(user)) {
             boolean deletedTask = taskDAO.deleteTask(taskId);
             if (deletedTask) {
-                notifyObservers(null);
+                realTimeCollaborationService.notifyTaskDeletion(taskId);
             }
             return deletedTask;
         } else {

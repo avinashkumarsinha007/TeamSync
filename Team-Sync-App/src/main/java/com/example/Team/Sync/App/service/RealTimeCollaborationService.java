@@ -17,45 +17,18 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class RealTimeCollaborationService {
-
-    private final TaskService taskService;
-    private final ProjectService projectService;
+  
+    private final Map<Long, TaskSubject> taskObserversMap = new HashMap<>();
     private final NotificationService notificationService;
-    // private Map<Long, Subject<Task>> taskObserversMap = new HashMap<>();
-    private Map<Long, TaskSubject> taskObserversMap = new HashMap<>();
+
     @Autowired
-    public RealTimeCollaborationService(
-            TaskService taskService,
-            ProjectService projectService,
-            NotificationService notificationService) {
-        this.taskService = taskService;
-        this.projectService = projectService;
+    public RealTimeCollaborationService(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
-    // public void registerObserverForTask(Long taskId, Long userId) {
-    //     Subject<Task> subject = taskObserversMap.get(taskId);
-    //     if (subject == null) {
-    //         subject = taskService;
-    //         taskObserversMap.put(taskId, subject);
-    //     }
-    //     Observer<Task> observer = new UserObserver(userId, notificationService);
-    //     subject.addObserver(observer);
-    // }
-
-    // public void unregisterObserverForTask(Long taskId, Long userId) {
-    //     Subject<Task> subject = taskObserversMap.get(taskId);
-    //     if (subject != null) {
-    //         List<Observer<Task>> observers = subject.getObservers();
-    //         observers.removeIf(observer -> observer.getUserId() == userId);
-    //     }
-    // }
-
     public void registerObserverForTask(Long taskId, Long userId) {
-        Task task = taskService.getTaskById(taskId); // Assume this method exists in TaskService
-        TaskSubject subject = taskObserversMap.computeIfAbsent(taskId, k -> new TaskSubject(task));
+        TaskSubject subject = taskObserversMap.computeIfAbsent(taskId, k -> new TaskSubject());
         Observer<Task> observer = new UserObserver(userId, notificationService);
-        addObserverToTask(taskId, observer);
         subject.addObserver(observer);
         System.out.println("Observer for user " + userId + " added for task " + taskId);
     }
@@ -66,7 +39,7 @@ public class RealTimeCollaborationService {
             value.getObservers().forEach(observer -> System.out.println("Observer: " + observer));
         });
     }
-    
+
     public void unregisterObserverForTask(Long taskId, Long userId) {
         TaskSubject subject = taskObserversMap.get(taskId);
         if (subject != null) {
@@ -74,17 +47,18 @@ public class RealTimeCollaborationService {
         }
     }
 
-    public void addObserverToTask(Long taskId, Observer<Task> observer) {
-        TaskSubject taskSubject = getTaskSubject(taskId);
-        if (taskSubject != null) {
-            taskSubject.addObserver(observer);
-            System.out.println("Added observer: " + observer);
-        } else {
-            System.out.println("No TaskSubject found for task ID: " + taskId);
+    public void notifyTaskUpdate(Task updatedTask) {
+        TaskSubject subject = taskObserversMap.get(updatedTask.getId());
+        if (subject != null) {
+            subject.updateTask(updatedTask);
         }
     }
 
-    private TaskSubject getTaskSubject(Long taskId) {
-        return taskObserversMap.get(taskId);
+    public void notifyTaskDeletion(Long taskId) {
+        TaskSubject subject = taskObserversMap.get(taskId);
+        if (subject != null) {
+            subject.updateTask(null); 
+        }
     }
+
 }

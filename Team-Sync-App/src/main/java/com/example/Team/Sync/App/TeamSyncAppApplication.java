@@ -58,13 +58,12 @@ public class TeamSyncAppApplication {
 		User user4 = userService.createUser("Anny", "anny@gmail.com", "999", "aaaaaa", Role.DEVELOPER, 9999999L);
 		
 		AccessControlManagementService accessControlManagementService = new AccessControlManagementService();
-		TaskService taskService = new TaskService(taskDAO, accessControlManagementService);
-
+		
 		ProjectService projectService = new ProjectService(projectDAO, accessControlManagementService);
 		NotificationService notificationService = new NotificationService(notificationDAO);
-
-		RealTimeCollaborationService realTimeCollaborationService = new RealTimeCollaborationService(taskService,
-				projectService, notificationService);
+		
+		RealTimeCollaborationService realTimeCollaborationService = new RealTimeCollaborationService(notificationService);
+		TaskService taskService = new TaskService(taskDAO, accessControlManagementService, realTimeCollaborationService);
 		ResourceService resourceService = new ResourceService(resourceDao, accessControlManagementService,
 				realTimeCollaborationService);
 
